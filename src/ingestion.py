@@ -40,10 +40,9 @@ def ingest(
     embedder: EmbeddingModel,
 ) -> None:
     chunks = clean_rows(rows)
-    vector_store.upsert(chunks)
+    embeddings = [embedder.embed_text(chunk.text) for chunk in chunks]
+    vector_store.upsert(chunks, embeddings=embeddings)
     knowledge_graph.upsert_entities(chunks)
-    for chunk in chunks:
-        _ = embedder.embed_text(chunk.text)
 
 
 def main() -> None:
@@ -53,10 +52,15 @@ def main() -> None:
     else:
         rows = load_csv(data_path)
 
-    vector_store = ChromaVectorStore(collection="qa")
-    knowledge_graph = Neo4jKnowledgeGraph(uri="neo4j://localhost:7687", user="neo4j", password="password")
-    embedder = EmbeddingModel()
+    vector_store = ChromaVectorStore(collection="qa", url="http://localhost:8000")
+    knowledge_graph = Neo4jKnowledgeGraph(
+        uri="http://localhost:7474",
+        user="neo4j",
+        password="password123",
+    )
+    embedder = EmbeddingModel(dimensions=128)
     ingest(rows, vector_store, knowledge_graph, embedder)
+    knowledge_graph.close()
 
 
 if __name__ == "__main__":
