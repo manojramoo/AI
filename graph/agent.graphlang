@@ -1,0 +1,56 @@
+graph AgenticRAGWorkflow {
+  node DataIngestion {
+    description: "Load Q&A data (JSON/CSV) and normalize fields."
+  }
+
+  node DataCleaning {
+    description: "Clean, dedupe, and chunk documents."
+  }
+
+  node TextEmbeddings {
+    description: "Create embeddings for each chunk."
+  }
+
+  node VectorDatabase {
+    description: "Persist embeddings in Chroma."
+  }
+
+  node KnowledgeGraphDatabase {
+    description: "Persist entities/relations in Neo4j."
+  }
+
+  node TextProcessingAgent {
+    description: "Normalize and embed user query."
+  }
+
+  node RetrieverAgent {
+    description: "Query Chroma + Neo4j for candidate context."
+  }
+
+  node RankerAgent {
+    description: "Score and filter candidate context."
+  }
+
+  node LLMAgent {
+    description: "Generate grounded answer."
+  }
+
+  node CriticAgent {
+    description: "Validate answer against retrieved context."
+  }
+
+  node RecommendationAgent {
+    description: "Suggest related follow-up questions."
+  }
+
+  edge DataIngestion -> DataCleaning
+  edge DataCleaning -> TextEmbeddings
+  edge TextEmbeddings -> VectorDatabase
+  edge TextEmbeddings -> KnowledgeGraphDatabase
+
+  edge TextProcessingAgent -> RetrieverAgent
+  edge RetrieverAgent -> RankerAgent
+  edge RankerAgent -> LLMAgent
+  edge LLMAgent -> CriticAgent
+  edge CriticAgent -> RecommendationAgent
+}
